@@ -1,0 +1,12 @@
+{
+  "name": "sharedroid-ws",
+  "version": "1.0.0",
+  "description": "WebSocket server for Sharedroid",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.5.0"
+  }
+}
