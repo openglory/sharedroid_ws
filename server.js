@@ -15,8 +15,7 @@ wss.on("connection", (ws) => {
                 deviceName = data.name;
                 clients[deviceName] = ws;
                 broadcastConnectedDevices();
-            } 
-            else if (data.type === "offer" || data.type === "answer" || data.type === "candidate") {
+            } else if (data.type === "offer" || data.type === "answer" || data.type === "candidate") {
                 if (clients[data.receiver]) {
                     clients[data.receiver].send(JSON.stringify(data));
                 }
