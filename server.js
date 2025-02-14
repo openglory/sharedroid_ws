@@ -8,13 +8,20 @@ wss.on('connection', (ws) => {
     console.log("New client connected");
     clients.add(ws);
 
-    ws.on('message', (message) => {
-        // Broadcast the message to all connected clients
-        clients.forEach(client => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
+    ws.on('message', (data) => {
+        try {
+            const parsedData = JSON.parse(data);
+
+            // Broadcast message to all connected clients
+            clients.forEach(client => {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(parsedData));
+                }
+            });
+
+        } catch (error) {
+            console.error("Error processing message:", error);
+        }
     });
 
     ws.on('close', () => {
