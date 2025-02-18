@@ -1,25 +1,42 @@
-const WebSocket = require('ws');
-const server = new WebSocket.Server({ port: 3000 });
+const WebSocket = require("ws");
 
-let clients = new Set();
+const PORT = process.env.PORT || 10000;
+const server = new WebSocket.Server({ port: PORT });
 
-server.on('connection', (ws) => {
-    console.log('New device connected');
-    clients.add(ws);
+let clients = new Map();
 
-    ws.on('message', (message) => {
-        console.log(`Received: ${message}`);
-        for (let client of clients) {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message);
+server.on("connection", (ws) => {
+    ws.on("message", (message) => {
+        let data = JSON.parse(message);
+
+        if (data.type === "setName") {
+            if ([...clients.values()].includes(data.name)) {
+                ws.send(JSON.stringify({ type: "nameError" }));
+            } else {
+                clients.set(ws, data.name);
+                updateClients();
+                ws.send(JSON.stringify({ type: "nameConfirmed", name: data.name }));
+            }
+        } else if (data.type === "message") {
+            for (let [client, name] of clients) {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: "message", name: data.name, message: data.message }));
+                }
             }
         }
     });
 
-    ws.on('close', () => {
-        console.log('Device disconnected');
+    ws.on("close", () => {
         clients.delete(ws);
+        updateClients();
     });
 });
 
-console.log("WebSocket server running on port 3000");
+function updateClients() {
+    const deviceNames = [...clients.values()];
+    for (let client of clients.keys()) {
+        client.send(JSON.stringify({ type: "updateDevices", devices: deviceNames }));
+    }
+}
+
+console.log(`WebSocket server running on port ${PORT}`);
